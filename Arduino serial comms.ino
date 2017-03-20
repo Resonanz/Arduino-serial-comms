@@ -91,6 +91,7 @@ void setup() {
 void loop() {
 	byte b;
 	if (cb_t.head != cb_t.tail) {
+		digitalWrite(13, HIGH);
 
 		b = cb_t.cBuff[cb_t.tail];
 		incrementCBTail();
@@ -200,6 +201,7 @@ void timerTick_10ms() {
 		tickCounter = 0;
 		ledTodo(OFF);
 		nextState = READING_HEADER_1;
+		//Serial.write(61);
 	}
 }
 
