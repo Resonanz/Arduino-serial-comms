@@ -4,13 +4,13 @@ Arduino UART serial communications software for comms between a computer and Ard
 Testing of the serial comms on an Arduino can be performed using a terminal emulator on a computer (see below) to send HEX bytes to the Arduino. To do this, first install a terminal emulator, then send the necessary packets to the Arduino.
 
 ## Packet layout
-
+`
 +--------+--------+--------+------+------+-------+------+------+------+------+-------+-------+-------+-------+------+
 | Header | Header | Header |  ID  | Addr | Data  | Data | Data | Data | Data | Cksum | Cksum | Cksum | Cksum | Tail |  
 |  byte  |  byte  |  byte  | byte | byte | bytes | byte | byte | byte | byte | byte  | byte  | byte  | byte  | byte |
 |   1    |   2    |   3    |      |      | 0-255 |  #1  |  #2  |  ... | #255 |   1   |   2   |   3   |   4   |      |
 +--------+--------+--------+------+------+-------+------+------+------+------+-------+-------+-------+-------+------+
-
+`
 ## Arduino coding
 
 - TimerThree -- this popular timer interrupt library does not work on the Arduino Uno.  I think it is designed for the Mega chips. TimerOne however works fine.
