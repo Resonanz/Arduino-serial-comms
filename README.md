@@ -6,3 +6,5 @@ Testing of the serial comms on an Arduino can be performed using Termite (Window
 ## Notes
 
 - TimerThree -- this popular timer interrupt library does not work on the Arduino Uno.  I think it is designed for the Mega chips. TimerOne however works fine.
+
+TimerOne URL: https://github.com/PaulStoffregen/TimerOne
