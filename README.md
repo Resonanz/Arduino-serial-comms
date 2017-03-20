@@ -6,11 +6,11 @@ Testing of the serial comms on an Arduino can be performed using a terminal emul
 ## Packet layout
 
 needs finishing...
-+--------+---------+---------+-------+----------+---------+------+------+------+------+
-| Header |  Header |  Header |   ID  |  Address |  Data   | Data | Data | Data | Data |  Header |  Header |  Header |  Header |  Header |  Header |  Header |  Header |
-|  byte  |   byte  |   byte  |  byte |   byte   |  bytes  | byte | byte | byte | byte |
-|   1    |    2    |    3    |       |          | (0-255) |  #1  |  #2  |  ... | #255 |
-+--------+---------+---------+-------+----------+---------+------+------+------+------+
++--------+--------+--------+------+------+-------+------+------+------+------+-------+-------+-------+-------+------+
+| Header | Header | Header |  ID  | Addr | Data  | Data | Data | Data | Data | Cksum | Cksum | Cksum | Cksum | Tail |  
+|  byte  |  byte  |  byte  | byte | byte | bytes | byte | byte | byte | byte | byte  | byte  | byte  | byte  | byte |
+|   1    |   2    |   3    |      |      | 0-255 |  #1  |  #2  |  ... | #255 |   1   |   2   |   3   |   4   |      |
++--------+--------+--------+------+------+-------+------+------+------+------+-------+-------+-------+-------+------+
 
 ## Arduino coding
 
