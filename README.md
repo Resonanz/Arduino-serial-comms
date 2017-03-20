@@ -5,7 +5,6 @@ Testing of the serial comms on an Arduino can be performed using a terminal emul
 
 ## Packet layout
 
-needs finishing...
 +--------+--------+--------+------+------+-------+------+------+------+------+-------+-------+-------+-------+------+
 | Header | Header | Header |  ID  | Addr | Data  | Data | Data | Data | Data | Cksum | Cksum | Cksum | Cksum | Tail |  
 |  byte  |  byte  |  byte  | byte | byte | bytes | byte | byte | byte | byte | byte  | byte  | byte  | byte  | byte |
