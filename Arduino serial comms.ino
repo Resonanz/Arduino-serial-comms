@@ -1,4 +1,6 @@
 #include <TimerOne.h>
+#include <Wire.h>
+#include <Adafruit_MLX90614.h>
 
 /*
 Name:    circBuffer.ino
@@ -18,8 +20,9 @@ enum {
 	HEADER_BYTE = 0xaaU,
 	ID_BYTE = 0x20U,
 	ADDR_BYTE = 0x21U,
+	CMD_BYTE = 0x30U,
 	STUFF_BYTE = 0x55U,
-	FOOTER_BYTE = 0x55U,
+	FOOTER_BYTE = 0x77U,
 };
 
 #define BUFFER_SIZE 255
@@ -31,6 +34,7 @@ enum {
 	READING_HEADER_3,
 	READING_ID,
 	READING_ADDR,
+	READING_CMD,
 	READING_NUMBYTES,
 	READING_BYTES,
 	READING_CKSUM1,
@@ -44,6 +48,7 @@ enum {
 typedef struct incomingPacket {
 	byte id = 0;
 	byte addr = 0;
+	byte cmd = 0;
 	byte numBytes = 0;
 	byte tempNumBytes = 0;
 	byte buff[255];
@@ -52,7 +57,6 @@ typedef struct incomingPacket {
 
 typedef struct circBuff {
 	byte cBuff[BUFFER_SIZE]; // receive buffer, 255 bytes max. limited by size(byte)
-							 //byte cBuffIdx = 0;       // index into buff[]
 	byte head = 0;
 	byte tail = 0;
 } circBuffer_t;
@@ -64,6 +68,7 @@ static byte nextState = READING_HEADER_1;
 
 static uint16_t commsTimeoutTickCounter = 0;
 
+Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -71,6 +76,7 @@ void setup() {
 	pinMode(13, OUTPUT);
 	Timer1.initialize(1000);
 	Timer1.attachInterrupt(timerTick_1ms); // blinkLED to run every 1 ms
+	mlx.begin();
 }
 
 // the loop function runs over and over again until power down or reset
@@ -85,6 +91,7 @@ void loop() {
 		case READING_HEADER_1:
 			commsTimeoutTickCounter = 0; // reset the interrupt driver tick counter; if max time exceeded, return state machine to beginning
 			ledTodo(OFF);
+
 			if (b == HEADER_BYTE)
 				nextState = READING_HEADER_2;
 			else
@@ -110,19 +117,26 @@ void loop() {
 				nextState = READING_ADDR;
 				inPacket_t.id = b;
 			}
-			else {
+			else
 				nextState = READING_HEADER_1;
-			}
 			break;
 
 		case READING_ADDR:
 			if (b == ADDR_BYTE) {
 				inPacket_t.addr = b;
+				nextState = READING_CMD;
+			}
+			else
+				nextState = READING_HEADER_1;
+			break;
+
+		case READING_CMD:
+			if (b == CMD_BYTE) {
+				inPacket_t.cmd = b;
 				nextState = READING_NUMBYTES;
 			}
-			else {
+			else
 				nextState = READING_HEADER_1;
-			}
 			break;
 
 		case READING_NUMBYTES:
@@ -136,32 +150,41 @@ void loop() {
 			inPacket_t.buff[inPacket_t.buffIdx] = b;
 			inPacket_t.buffIdx++;
 			inPacket_t.tempNumBytes--;
-			if (inPacket_t.tempNumBytes == 0) { // decrement the numBytes value received previously
-//				nextState = READING_FOOTER;
-				nextState = VALID_PACKET;
-			}
+			if (inPacket_t.tempNumBytes == 0) // decrement the numBytes value received previously
+				nextState = READING_FOOTER;
 			break;
 
 		case READING_FOOTER:
 			if (b == FOOTER_BYTE) {
 				inPacket_t.numBytes = b;
-				nextState = VALID_PACKET;
+				commsTimeoutTickCounter = 0; // reset the interrupt driver tick counter; if max time exceeded, return state machine to beginning
+				//printMetaState();
+				sendReplyPacket();
+				nextState = READING_HEADER_1;
 			}
-			else {
-				nextState = VALID_PACKET;
-			}
-			break;
-
-		case VALID_PACKET:
-			commsTimeoutTickCounter = 0; // reset the interrupt driver tick counter; if max time exceeded, return state machine to beginning
-			printMetaState();
 			break;
 
 		default:
+			nextState = READING_HEADER_1;
 			break;
 		}
 	}
 }
+
+
+
+byte sendReplyPacket() {
+	Serial.write(0x66);
+	Serial.write(0x66);
+	Serial.write(0x66);
+	Serial.write(0x22);
+	Serial.write(0x23);
+	//Serial.write(readIR()); // this needs to somehow return a signed float
+	Serial.write(0x99);
+	Serial.write(0x77);
+}
+
+
 
 /*
 *  1 ms tick interrupt
@@ -229,4 +252,11 @@ void serialEvent() {
 		cb_t.cBuff[cb_t.head] = Serial.read();
 		incrementCBHead();
 	}
+}
+
+
+
+int8_t readIR() {
+//	mlx.readAmbientTempC()
+	return(mlx.readObjectTempC());
 }
